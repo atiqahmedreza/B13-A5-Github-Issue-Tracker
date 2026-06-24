@@ -227,3 +227,12 @@ newForm.addEventListener("submit", (e) => {
   newForm.reset();
   newModal.classList.add("hidden");
 });
+
+
+document.getElementById("logout-btn").addEventListener("click", () => {
+  localStorage.removeItem("isLoggedIn");
+  window.location.href = "index.html";
+});
+
+
+loadIssues();
