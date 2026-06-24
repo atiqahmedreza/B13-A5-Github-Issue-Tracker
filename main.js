@@ -163,7 +163,7 @@ tabs.forEach((tab) => {
 
 async function doSearch() {
   const q = searchInput.value.trim();
-  if (!q) { applyTab(); return; }   // empty search -> back to tab view
+  if (!q) { applyTab(); return; }  
   showSpinner(true);
   try {
     const results = await searchIssues(q);
@@ -183,5 +183,47 @@ searchInput.addEventListener("keydown", (e) => {
 
 document.getElementById("modal-close").addEventListener("click", closeModal);
 modal.addEventListener("click", (e) => {
-  if (e.target === modal) closeModal();   // click outside to close
+  if (e.target === modal) closeModal();   
+});
+
+
+const newModal = document.getElementById("new-modal");
+const newForm = document.getElementById("new-form");
+let nextId = 1000; 
+
+document.getElementById("new-btn").addEventListener("click", () => {
+  newModal.classList.remove("hidden");
+});
+document.getElementById("new-close").addEventListener("click", () => {
+  newModal.classList.add("hidden");
+});
+newModal.addEventListener("click", (e) => {
+  if (e.target === newModal) newModal.classList.add("hidden");
+});
+
+newForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const now = new Date().toISOString();
+  const labels = document.getElementById("f-labels").value
+    .split(",").map((s) => s.trim()).filter(Boolean);
+
+  const issue = {
+    id: nextId++,
+    title: document.getElementById("f-title").value.trim(),
+    description: document.getElementById("f-desc").value.trim(),
+    status: document.getElementById("f-status").value,
+    priority: document.getElementById("f-priority").value,
+    author: document.getElementById("f-author").value.trim(),
+    assignee: "",
+    labels: labels,
+    createdAt: now,
+    updatedAt: now,
+    _local: true, 
+  };
+
+  allIssues.unshift(issue); 
+  updateSummary();
+  applyTab();
+  newForm.reset();
+  newModal.classList.add("hidden");
 });
