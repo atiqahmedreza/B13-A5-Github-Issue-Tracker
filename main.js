@@ -69,3 +69,81 @@ function cardTemplate(issue) {
       </div>
     </article>`;
 }
+
+
+
+function renderIssues(list) {
+  if (!list || list.length === 0) {
+    issuesBox.innerHTML = "";
+    empty.classList.remove("hidden");
+    return;
+  }
+  empty.classList.add("hidden");
+  issuesBox.innerHTML = list.map(cardTemplate).join("");
+
+  
+  document.querySelectorAll(".card").forEach((card) => {
+    card.addEventListener("click", () => openModal(card.dataset.id));
+  });
+}
+
+
+function applyTab() {
+  let list = allIssues;
+  if (currentTab !== "all") {
+    list = allIssues.filter((i) => i.status === currentTab);
+  }
+  renderIssues(list);
+}
+
+
+async function loadIssues() {
+  showSpinner(true);
+  try {
+    allIssues = await getAllIssues(); 
+    updateSummary();
+    applyTab();
+  } catch (err) {
+    empty.textContent = "Failed to load issues. Try again.";
+    empty.classList.remove("hidden");
+  } finally {
+    showSpinner(false);
+  }
+}
+
+
+function renderModal(issue) {
+  const labels = issue.labels.map((l) => `<span class="label ${labelClass(l)}">${l}</span>`).join("");
+  modalBody.innerHTML = `
+    <div class="modal-body">
+      <span class="badge ${issue.status}">${issue.status}</span>
+      <h2>${issue.title}</h2>
+      <p>${issue.description}</p>
+      <div class="labels">${labels}</div>
+      <p class="row">Author: <b>${issue.author}</b></p>
+      <p class="row">Assignee: <b>${issue.assignee || "Unassigned"}</b></p>
+      <p class="row">Priority: <b>${issue.priority}</b></p>
+      <p class="row">Created: <b>${formatDate(issue.createdAt)}</b></p>
+      <p class="row">Updated: <b>${formatDate(issue.updatedAt)}</b></p>
+    </div>`;
+}
+
+
+async function openModal(id) {
+  modal.classList.remove("hidden");
+
+  
+  const local = allIssues.find((i) => String(i.id) === String(id) && i._local);
+  if (local) { renderModal(local); return; }
+
+  modalBody.innerHTML = '<div class="spinner"><div class="loader"></div></div>';
+  try {
+    renderModal(await getIssueById(id));
+  } catch (err) {
+    modalBody.innerHTML = "<p>Failed to load issue details.</p>";
+  }
+}
+
+function closeModal() {
+  modal.classList.add("hidden");
+}
