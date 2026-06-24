@@ -147,3 +147,41 @@ async function openModal(id) {
 function closeModal() {
   modal.classList.add("hidden");
 }
+
+
+
+tabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    tabs.forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    currentTab = tab.dataset.tab;
+    searchInput.value = "";
+    applyTab();
+  });
+});
+
+
+async function doSearch() {
+  const q = searchInput.value.trim();
+  if (!q) { applyTab(); return; }   // empty search -> back to tab view
+  showSpinner(true);
+  try {
+    const results = await searchIssues(q);
+    renderIssues(results);
+  } catch (err) {
+    empty.textContent = "Search failed.";
+    empty.classList.remove("hidden");
+  } finally {
+    showSpinner(false);
+  }
+}
+searchBtn.addEventListener("click", doSearch);
+searchInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") doSearch();
+});
+
+
+document.getElementById("modal-close").addEventListener("click", closeModal);
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) closeModal();   // click outside to close
+});
